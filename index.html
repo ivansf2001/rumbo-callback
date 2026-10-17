@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<title>Volviendo a Rumbo</title>
+<!--
+  Página de paso para el Control presupuestario de Rumbo.
+  El modo real de Enable Banking solo acepta direcciones https, pero la app vive en tu
+  ordenador (http://127.0.0.1:8765). Esta página, alojada en GitHub Pages, recibe la vuelta
+  del banco y te reenvía al momento a la app local.
+
+  Seguridad:
+  - Solo reenvía a una dirección fija (tu propio ordenador): nadie puede usarla para mandarte a otra web.
+  - Solo pasa los parámetros de la vuelta del banco (code, state, error, error_description).
+  - El código del banco sirve una sola vez, caduca en minutos y no vale nada sin la clave
+    privada que solo está en tu ordenador.
+  - No guarda nada, no carga nada externo, y borra el código de la barra de direcciones.
+-->
+<style>
+  :root { color-scheme: light dark; --fondo: #f9f9f7; --tinta: #0b0b0b; --tinta2: #52514e; --azul: #2a78d6; }
+  @media (prefers-color-scheme: dark) { :root { --fondo: #0d0d0d; --tinta: #fff; --tinta2: #c3c2b7; --azul: #3987e5; } }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--fondo); color: var(--tinta);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 16px; box-sizing: border-box; }
+  main { max-width: 460px; text-align: center; }
+  h1 { font-size: 1.3rem; margin: 0 0 .5rem; }
+  p { color: var(--tinta2); margin: 0 0 1.2rem; }
+  a { display: inline-block; background: var(--azul); color: #fff; text-decoration: none; padding: .7rem 1.2rem; border-radius: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="titulo">Volviendo a Rumbo…</h1>
+  <p id="texto">Si no pasa nada en unos segundos, pulsa el botón. La app tiene que estar abierta en este ordenador.</p>
+  <a id="volver" href="http://127.0.0.1:8765/">Volver a Rumbo</a>
+</main>
+<script>
+(function () {
+  var DESTINO = "http://127.0.0.1:8765/api/banking/callback";   // fijo: nunca se reenvía a otra web
+  var recibido = new URLSearchParams(location.search), reenviar = new URLSearchParams();
+  ["code", "state", "error", "error_description"].forEach(function (k) {
+    if (recibido.has(k)) reenviar.set(k, recibido.get(k).slice(0, 2000));
+  });
+  history.replaceState(null, "", location.pathname);   // quita el código de la barra y del historial
+  if (!reenviar.has("state")) {
+    document.getElementById("titulo").textContent = "Página de paso de Rumbo";
+    document.getElementById("texto").textContent = "Solo sirve para volver del banco a la app. No hay nada que hacer aquí.";
+    return;
+  }
+  var url = DESTINO + "?" + reenviar.toString();
+  document.getElementById("volver").href = url;
+  location.replace(url);
+})();
+</script>
+</body>
+</html>
